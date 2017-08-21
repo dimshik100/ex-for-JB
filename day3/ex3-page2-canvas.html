@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>canvas page</title>
+</head>
+
+<body>
+
+
+    <canvas id="myCanvas" width="500" height="500"></canvas>
+
+    <script>
+        // utils
+        // Converts from degrees to radians.
+        Math.radians = function (degrees) {
+            return degrees * Math.PI / 180;
+        };
+
+        // Converts from radians to degrees.
+        Math.degrees = function (radians) {
+            return radians * 180 / Math.PI;
+        };
+
+
+        function getArcStartAndEndAngles(pointA, pointB, pointC) {
+
+            // get vectors from x2,y2 to the other points
+            var nx1 = pointA.x - pointB.x;
+            var ny1 = pointA.y - pointB.y;
+            var nx2 = pointC.x - pointB.x;
+            var ny2 = pointC.y - pointB.y;
+
+            var lineAngle1 = Math.atan2(ny1, nx1);
+            var lineAngle2 = Math.atan2(ny2, nx2);
+
+            // use cross product to find correct direction.
+            if (nx1 * ny2 - ny1 * nx2 < 0) { // wrong way around swap direction
+                const t = lineAngle2;
+                lineAngle2 = lineAngle1;
+                lineAngle1 = t;
+            }
+
+            // if angle 1 is behind then move ahead
+            if (lineAngle1 < lineAngle2) {
+                lineAngle1 += Math.PI * 2;
+            }
+
+            return {
+                lineAngle1: lineAngle1,
+                lineAngle2: lineAngle2
+            }
+        }
+
+
+        function drawTriangle(pointA, pointB, pointC) {
+            // the triangle
+            ctx.beginPath();
+            ctx.moveTo(pointA.x, pointA.y);
+            ctx.lineTo(pointB.x, pointB.y);
+            ctx.lineTo(pointC.x, pointC.y);
+            ctx.closePath();
+
+            // the outline
+            ctx.lineWidth = 10;
+            ctx.strokeStyle = '#666666';
+            ctx.stroke();
+
+            // the fill color
+            ctx.fillStyle = "#FFCC00";
+            ctx.fill();
+        }
+
+
+        function drawArcAtPoint(pointA, pointB, pointC) {
+            ctx.strokeStyle = "#FF0000";
+            ctx.lineWidth = 5;
+
+            var pointBAngle = getArcStartAndEndAngles(pointA, pointB, pointC);
+
+
+            ctx.moveTo(pointB.x, pointB.y);
+            ctx.beginPath();
+
+            ctx.arc(pointB.x, pointB.y, 50, pointBAngle.lineAngle1, pointBAngle.lineAngle2);
+            ctx.stroke();
+
+
+            // get the mid point
+            const mx = -Math.cos((pointBAngle.lineAngle1 + pointBAngle.lineAngle2) / 2) * 50 + pointB.x;
+            const my = -Math.sin((pointBAngle.lineAngle1 + pointBAngle.lineAngle2) / 2) * 50 + pointB.y;
+
+
+            // render the angle
+            ctx.fillStyle = "black";
+            ctx.font = "16px arial";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(
+                (360 - Math.degrees(pointBAngle.lineAngle1 - pointBAngle.lineAngle2)).toFixed(0),  // convert to deg
+                mx,
+                my,
+            )
+        }
+
+
+
+
+        var points = [{ x: 100, y: 100 }, { x: 100, y: 300 }, { x: 300, y: 300 }];
+
+
+        var canvasElement = document.querySelector("#myCanvas");
+        var ctx = canvasElement.getContext("2d");
+
+
+        drawTriangle(points[0], points[1], points[2]);
+
+
+        drawArcAtPoint(points[0], points[1], points[2]);
+        drawArcAtPoint(points[1], points[0], points[2]);
+        drawArcAtPoint(points[1], points[2], points[0]);
+    </script>
+
+</body>
+
+</html>
